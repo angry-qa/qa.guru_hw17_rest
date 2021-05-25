@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Cookie;
 
-public class CartTests {
+class CartTests {
 
   private static final String contentType = "application/x-www-form-urlencoded; charset=UTF-8";
 

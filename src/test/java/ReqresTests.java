@@ -19,7 +19,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void singleUserTest() {
+  void singleUserTest() {
     given().when()
         .get("/api/users/5")
         .then()
@@ -34,7 +34,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void deleteUserTest() {
+  void deleteUserTest() {
     given().contentType(ContentType.JSON)
         .when()
         .delete("/api/users/5")
@@ -43,7 +43,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void createUserTest() {
+  void createUserTest() {
     String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
     given().contentType(ContentType.JSON)
@@ -60,7 +60,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void updateUserTest() {
+  void updateUserTest() {
     String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
     given().contentType(ContentType.JSON)
@@ -76,7 +76,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void loginUserTest() {
+  void loginUserTest() {
 
     given().contentType(ContentType.JSON)
         .body("{ \"email\": \"eve.holt@reqres.in\", " +
@@ -89,7 +89,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void negativeLoginTest() {
+  void negativeLoginTest() {
     given().contentType(ContentType.JSON)
         .body("{ \"email\": \"xxx@mail.ru\"}")
         .when()
