@@ -1,9 +1,12 @@
 import static filters.CustomLogFilter.customLogFilter;
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
@@ -12,7 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import models.Root;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class ReqresTests {
@@ -125,6 +130,35 @@ public class ReqresTests {
         .then()
         .statusCode(400)
         .body("error", is("Missing password"));
+  }
+
+  @Test
+  @DisplayName("Соответсиве списка пользователей JSON схеме")
+  void userListJsonShemaTest() {
+    given()
+        .filter(customLogFilter().withCustomTemplates())
+        .contentType(ContentType.JSON)
+        .get("/api/users/")
+        .then()
+        .body(matchesJsonSchemaInClasspath("jsonshemas/user_list_response.json"));
+  }
+
+  @Test
+  @DisplayName("Соответсиве пользователя JSON модели")
+  void userWithModelTest() {
+    Root root =
+        given()
+            .filter(customLogFilter().withCustomTemplates())
+            .contentType(JSON)
+            .log().uri()
+            .log().body()
+            .get("/api/users/2")
+            .then()
+            .log().body()
+            .extract().as(Root.class);
+
+    assertThat(root.getData().getFirst_name()).isEqualTo("Janet");
+    assertThat(root.getData().getLast_name()).isEqualTo("Weaver");
   }
 
 }
