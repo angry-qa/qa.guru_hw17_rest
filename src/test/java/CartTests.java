@@ -22,7 +22,8 @@ class CartTests {
   static void setup() {
     RestAssured.baseURI = "http://demowebshop.tricentis.com";
     Configuration.baseUrl = "http://demowebshop.tricentis.com";
-    Configuration.headless = true;
+    Configuration.remote = "https://user1:1234@selenoid.autotests.cloud/wd/hub/";
+    Configuration.startMaximized = true;
   }
 
    String getCookie() {
