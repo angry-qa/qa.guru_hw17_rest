@@ -1,13 +1,17 @@
+import static filters.CustomLogFilter.customLogFilter;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +25,7 @@ public class ReqresTests {
   @Test
   void singleUserTest() {
     given().when()
+        .filter(new AllureRestAssured()) // Обычное подключение Allure
         .get("/api/users/5")
         .then()
         .statusCode(200)
@@ -35,7 +40,9 @@ public class ReqresTests {
 
   @Test
   void deleteUserTest() {
-    given().contentType(ContentType.JSON)
+    given()
+        .filter(customLogFilter().withCustomTemplates()) // Подключение Allure с кастомным фильтром
+        .contentType(ContentType.JSON)
         .when()
         .delete("/api/users/5")
         .then()
@@ -49,6 +56,27 @@ public class ReqresTests {
     given().contentType(ContentType.JSON)
         .body("{ \"name\": \"mohen\", " +
                 " \"job\": \"qa-engineer\" }")
+        .when()
+        .post("/api/users")
+        .then()
+        .statusCode(201)
+        .body("name", is("mohen"))
+        .body("job", is("qa-engineer"))
+        .body("id",not(nullValue()))
+        .body("createdAt", containsString(currentDate));
+  }
+
+  @Test
+  void createUserTestWithHashMap() {
+    String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+
+    Map<String, String> data = new HashMap<>();
+    data.put("name", "mohen");
+    data.put("job", "qa-engineer");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body(data)
         .when()
         .post("/api/users")
         .then()
