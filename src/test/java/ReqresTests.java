@@ -10,6 +10,8 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +56,27 @@ public class ReqresTests {
     given().contentType(ContentType.JSON)
         .body("{ \"name\": \"mohen\", " +
                 " \"job\": \"qa-engineer\" }")
+        .when()
+        .post("/api/users")
+        .then()
+        .statusCode(201)
+        .body("name", is("mohen"))
+        .body("job", is("qa-engineer"))
+        .body("id",not(nullValue()))
+        .body("createdAt", containsString(currentDate));
+  }
+
+  @Test
+  void createUserTestWithHashMap() {
+    String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+
+    Map<String, String> data = new HashMap<>();
+    data.put("name", "mohen");
+    data.put("job", "qa-engineer");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body(data)
         .when()
         .post("/api/users")
         .then()
