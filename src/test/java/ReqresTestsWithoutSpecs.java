@@ -1,26 +1,24 @@
-import static filters.CustomLogFilter.customLogFilter;
-import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 import models.Root;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class ReqresTests {
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
+import static filters.CustomLogFilter.customLogFilter;
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
+
+public class ReqresTestsWithoutSpecs {
 
   @BeforeAll
   static void setup() {
@@ -41,6 +39,27 @@ public class ReqresTests {
         .body("data.avatar", is("https://reqres.in/img/faces/5-image.jpg"))
         .body("support.url", is("https://reqres.in/#support-heading"))
         .body("support.text", is("To keep ReqRes free, contributions towards server costs are appreciated!"));
+  }
+
+  @Test
+  void userWithEmailDomainExist() {
+    given()
+            .when()
+            .get("/api/users")
+            .then()
+            .statusCode(200)
+            .body(String.format("data.findAll{it.email =~/.*?@%s/}.email.flatten()", "reqres.in"), is(not(empty())));
+  }
+
+  @Test
+  void specsTest() {
+    given()
+            .when()
+            .get("/api/users")
+            .then()
+            .statusCode(200)
+            .body("data", hasSize(greaterThan(0)))
+            .log().body();
   }
 
   @Test
