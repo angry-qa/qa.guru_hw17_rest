@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -16,8 +17,9 @@ public class ReqresTestsWithSpecs {
   @Test
   @DisplayName("Получение пользователя по id")
   void singleUserTest() {
-    SpecsReqresTest.request
-        //.filter(new AllureRestAssured()) // Обычное подключение Allure
+    //SpecsReqresTest.request // спеку можно подключить так
+    given().spec(SpecsReqresTest.request)    // или так
+        //:.filter(new AllureRestAssured()) // Обычное подключение Allure
         .get("/users/5")
         .then()
         .spec(SpecsReqresTest.responseSpec)
@@ -45,7 +47,7 @@ public class ReqresTestsWithSpecs {
   @Test
   @DisplayName("Проверка что список пользователей не пустой")
   void specsTest() {
-    SpecsReqresTest.request
+    given().spec(SpecsReqresTest.request)
             .when()
             .get("/users")
             .then()
