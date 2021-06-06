@@ -1,38 +1,26 @@
-import static filters.CustomLogFilter.customLogFilter;
-import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import io.qameta.allure.restassured.AllureRestAssured;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
+import models.Root;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import specs.SpecsReqresTest;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import models.Root;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
-public class ReqresTests {
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 
-  @BeforeAll
-  static void setup() {
-    RestAssured.baseURI = "https://reqres.in";
-  }
+public class ReqresTestsWithSpecs {
 
   @Test
+  @DisplayName("Получение пользователя по id")
   void singleUserTest() {
-    given().when()
-        .filter(new AllureRestAssured()) // Обычное подключение Allure
-        .get("/api/users/5")
+    SpecsReqresTest.request
+        //.filter(new AllureRestAssured()) // Обычное подключение Allure
+        .get("/users/5")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(200)
         .body("data.id", is(5))
         .body("data.email", is("charles.morris@reqres.in"))
@@ -44,26 +32,53 @@ public class ReqresTests {
   }
 
   @Test
+  @DisplayName("Существует пользователь с доменом reqres.in (Groovy)")
+  void userWithEmailDomainExist() {
+    SpecsReqresTest.request
+            .get("/users")
+            .then()
+            .spec(SpecsReqresTest.responseSpec)
+            .statusCode(200)
+            .body(String.format("data.findAll{it.email =~/.*?@%s/}.email.flatten()", "reqres.in"), is(not(empty())));
+  }
+
+  @Test
+  @DisplayName("Проверка что список пользователей не пустой")
+  void specsTest() {
+    SpecsReqresTest.request
+            .when()
+            .get("/users")
+            .then()
+            .spec(SpecsReqresTest.responseSpec)
+            .statusCode(200)
+            .body("data", hasSize(greaterThan(0)))
+            .log().body();
+  }
+
+  @Test
+  @DisplayName("Удаление пользователя")
   void deleteUserTest() {
-    given()
-        .filter(customLogFilter().withCustomTemplates()) // Подключение Allure с кастомным фильтром
-        .contentType(ContentType.JSON)
+    SpecsReqresTest.request
+        //.filter(customLogFilter().withCustomTemplates()) // Подключение Allure с кастомным фильтром
         .when()
-        .delete("/api/users/5")
+        .delete("/users/5")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(204);
   }
 
   @Test
+  @DisplayName("Создание пользователя")
   void createUserTest() {
     String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
-    given().contentType(ContentType.JSON)
+    SpecsReqresTest.request
         .body("{ \"name\": \"mohen\", " +
                 " \"job\": \"qa-engineer\" }")
         .when()
-        .post("/api/users")
+        .post("/users")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(201)
         .body("name", is("mohen"))
         .body("job", is("qa-engineer"))
@@ -72,6 +87,7 @@ public class ReqresTests {
   }
 
   @Test
+  @DisplayName("Создание пользователя с HashMap")
   void createUserTestWithHashMap() {
     String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
@@ -79,12 +95,12 @@ public class ReqresTests {
     data.put("name", "mohen");
     data.put("job", "qa-engineer");
 
-    given()
-        .contentType(ContentType.JSON)
+    SpecsReqresTest.request
         .body(data)
         .when()
-        .post("/api/users")
+        .post("/users")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(201)
         .body("name", is("mohen"))
         .body("job", is("qa-engineer"))
@@ -93,15 +109,17 @@ public class ReqresTests {
   }
 
   @Test
+  @DisplayName("Обновление данных о пользователе")
   void updateUserTest() {
     String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
 
-    given().contentType(ContentType.JSON)
+    SpecsReqresTest.request
         .body("{ \"name\": \"mohen\", " +
               " \"job\": \"qa-engineer\" }")
         .when()
-        .put("/api/users/5")
+        .put("/users/5")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(200)
         .body("name", is("mohen"))
         .body("job", is("qa-engineer"))
@@ -109,25 +127,28 @@ public class ReqresTests {
   }
 
   @Test
+  @DisplayName("Логин с валидными данными")
   void loginUserTest() {
-
-    given().contentType(ContentType.JSON)
+    SpecsReqresTest.request
         .body("{ \"email\": \"eve.holt@reqres.in\", " +
               " \"password\": \"cityslicka\" }")
         .when()
-        .post("/api/login/")
+        .post("/login/")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(200)
         .body("token", is("QpwL5tke4Pnpja7X4"));
   }
 
   @Test
+  @DisplayName("Логин с невалидными данными")
   void negativeLoginTest() {
-    given().contentType(ContentType.JSON)
+    SpecsReqresTest.request
         .body("{ \"email\": \"xxx@mail.ru\"}")
         .when()
-        .post("/api/login")
+        .post("/login")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .statusCode(400)
         .body("error", is("Missing password"));
   }
@@ -135,11 +156,11 @@ public class ReqresTests {
   @Test
   @DisplayName("Соответсиве списка пользователей JSON схеме")
   void userListJsonShemaTest() {
-    given()
-        .filter(customLogFilter().withCustomTemplates())
-        .contentType(ContentType.JSON)
-        .get("/api/users/")
+    SpecsReqresTest.request
+        //.filter(customLogFilter().withCustomTemplates())
+        .get("/users/")
         .then()
+        .spec(SpecsReqresTest.responseSpec)
         .body(matchesJsonSchemaInClasspath("jsonshemas/user_list_response.json"));
   }
 
@@ -147,13 +168,13 @@ public class ReqresTests {
   @DisplayName("Соответсиве пользователя JSON модели")
   void userWithModelTest() {
     Root root =
-        given()
-            .filter(customLogFilter().withCustomTemplates())
-            .contentType(JSON)
+            SpecsReqresTest.request
+            //.filter(customLogFilter().withCustomTemplates())
             .log().uri()
             .log().body()
-            .get("/api/users/2")
+            .get("/users/2")
             .then()
+            .spec(SpecsReqresTest.responseSpec)
             .log().body()
             .extract().as(Root.class);
 
